@@ -62,12 +62,7 @@ int cread( unsigned int cmf, unsigned int* hex_addr, unsigned int* found, unsign
 //
 	*/
 
-// check address against the max size of physical memory
-if ( (((1 << 8) - 1) & (*hex_addr >> (1 - 1))) > MAX_SIZE - 1 ) { // address location exceeds max size of physical memory
-	return FAIL;
-}
-
-int retVal = OK;
+int retVal = FAIL;
 *found = MISS;
 
 // Direct Mapping
@@ -78,14 +73,16 @@ if(cmf == 1)
 	extract tag, line, and offset numbers as decimal from hex_addr
 	NOTE: "*" dereferences hex_addr, giving the value at the address rather than the address
 	*/
-	// starting at index 6 (inclusive, starting at 1), take 3 ints to the left
+	// take 3 ints to the left starting at index 6 (inclusive, starting at 1)
 	int tag_num = (((1 << 3) - 1) & (*hex_addr >> (6 - 1)));
-	// starting at index 3 (inclusive), take 3 ints to the left
+	// take 3 ints to the left starting at index 3 (inclusive) 
 	int line_num = (((1 << 3) - 1) & (*hex_addr >> (3 - 1)));
-	// starting at index 1 (inclusive), take 2 ints to the left
+	// take 2 ints to the left starting at index 1 (inclusive)
 	int offset_num = (((1 << 2) - 1) & (*hex_addr >> (1 - 1)));
 
 	if( cache[line_num]->tag == UNK ) { // cache line is empty
+		//printf("look in line %d\n", line_num);
+		//printf("line is empty.\n");
 		*found = MISS;
 		*replace = NO;
 
@@ -95,10 +92,13 @@ if(cmf == 1)
 		int start_addr = block_location[block_num];
 		retVal = phy_memory[start_addr + offset_num];
 
+		//printf("set tag to %d", tag_num);
 		// replace tag in cache
 		cache[line_num]->tag = tag_num;
 	}
 	else if ( cache[line_num]->tag == tag_num ) { // CACHE HIT
+		//printf("look in line %d\n", line_num);
+		//printf("found tag num at line num. Hit.");
 		*found = HIT;
 		*replace = NO;
 
@@ -108,6 +108,8 @@ if(cmf == 1)
 		retVal = phy_memory[start_addr + offset_num];
 	}
 	else { // MISS, but cache line is not empty
+		//printf("look in line %d \n", line_num);
+		//printf("Wrong tag num at line num. Miss and replace.");
 		*found = MISS;
 		*replace = YES;
 
@@ -173,6 +175,16 @@ else {
 		cache[min_inx]->hit_count = 1;
 	}
 }
+
+/*
+printf("\ncache\n");
+
+for ( int i=0; i < NUM_OF_LINES; i++ ) {
+			printf("%d hit_count %d   ", i, cache[i]->hit_count);
+			printf("tag %d", cache[i]->tag);
+			printf("\n");
+		}
+*/
 
 return retVal;
 
