@@ -1,0 +1,3 @@
+gcc -c -Wall -g  cache.c
+gcc -c -Wall -g  hw1.c
+gcc memory.o cache.o hw1.o -o hw1 -lm
