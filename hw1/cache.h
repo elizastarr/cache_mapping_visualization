@@ -20,7 +20,8 @@
 
 // CMF
 #define DM 1
-#define FA 2	
+#define FA 2
+#define SA 3	
 
 // Simulator parameters
 #define NUM_OF_LINE_BITS 3

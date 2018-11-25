@@ -1,4 +1,3 @@
-
 #include <stdio.h>	// IO functions
 #include <stdlib.h> 	// std lib function
 #include <unistd.h>	// close function
@@ -20,7 +19,7 @@ This will be an interactive simulator that allows the user to:
 2) Enter hex memory address locations
 3) For the CMF selected in (1) determine if it's a cache-hit or -miss (and display to the user)
 4) if a cache-miss, determine the cache line to be replaced for the choosen CMF.
-   Note: for FA CMF, the replacement algorithm is least recently used (LRU) that is based on 
+   Note: for FA CMF, the replacement algorithm is least frequently used (LFU) that is based on 
 	 minimum number of cache hits.
 
 ***********************************************************************************************/
@@ -29,21 +28,19 @@ This will be an interactive simulator that allows the user to:
 #define RUNFOEVA 1
 
 
-char* CMFS[] = { "Direct Mapping", "Fully Associative" };
+char* CMFS[] = { "Direct Mapping", "Fully Associative", "Set Associative" };
 char* OP[] = { "MISS", "HIT" };
 char* ROP[] = { "No Replacement", "Replacement" };
 
-// the only main function
 int main( int argc, char *argv[] ) {
 
-	unsigned int addr_bits, num_blocks;
+	unsigned int num_blocks;
 	unsigned int cmf;
 	unsigned int hex_addr;
 	
 	int byte;
 	unsigned int found, replace;
 
-	// passing in 8 bits
 	addr_bits = readMemoryFile( argv[1] );
 
 	if ( addr_bits != READ_ERROR ) {
@@ -61,7 +58,6 @@ int main( int argc, char *argv[] ) {
 		printf("[STEP 1] Setting up physical memory\n");
 		printf("------------------------\n");
 
-		// given memory.txt, num_blocks = 64
 		num_blocks = numberOfBlocks( addr_bits, NUM_BLOCK_OFFSET_BITS );
 
 		printf("Physical memory addressable bits = %d, total number of blocks = %d\n", addr_bits, num_blocks );
@@ -82,79 +78,59 @@ int main( int argc, char *argv[] ) {
 		initialzeBlockPointers( num_blocks, NUM_BLOCK_OFFSET_BITS );
 
 		/*
-			---------------------------------------------------
-				STEP 3:
-			---------------------------------------------------
-			Ask the user to choose the cache mapping function (CMF)
-			
+		---------------------------------------------------
+			STEP 3: threaded?
+		---------------------------------------------------
+		Initialize cache, that is, all the cache lines should 
+		be empty (i.e. no block of physical memory is loaded 
+		into any cache line).
+		
 		*/
 
 		printf("\n------------------------\n");
-		printf("[STEP 3] Select cache mapping function (CMF)\n");
+		printf("[STEP 3] initializing cache\n");
 		printf("------------------------\n");
-		printf("1 = Direct mapping\n");
-		printf("2 = Fully associative\n");
+
+		initializeCache( NUM_OF_LINES );
+
+		/*
+		---------------------------------------------------
+			STEP 4:
+		---------------------------------------------------
+		Ask the user to enter physical a memory address location
+		in hexidecimal format (e.g. FA), then get and display
+		physical memory value from cache and display to user.
+		
+		*/
+
+
+		cmf = FA;
+		cmf = DM;
+		cmf = SA;
+
+		printf("\n------------------------\n");
+		printf("[STEP 4] Starting simulation\n");
 		printf("------------------------\n");
-		printf("Please enter 1 or 2: ");
-
-		scanf( "%d", &cmf );
-
-		if ( cmf != DM && cmf != FA ) 
-			printf("You're kill'n me ... unknown choice (%d) ... exiting\n", cmf );
-		else {
-
-			/*
-			---------------------------------------------------
-				STEP 4:
-			---------------------------------------------------
-			Initialize cache, that is, all the cache lines should 
-			be empty (i.e. no block of physical memory is loaded 
-			into any cache line).
-			
-			*/
-
-			printf("\n------------------------\n");
-			printf("[STEP 4] initializing cache\n");
-			printf("------------------------\n");
-
-			// there are 8 lines of cache
-			initializeCache( NUM_OF_LINES );
-
-			/*
-			---------------------------------------------------
-				STEP 5:
-			---------------------------------------------------
-			Ask the user to enter physical a memory address location
-			in hexidecimal format (e.g. FA), then get and display
-			physical memory value from cache and display to user.
-			
-			*/
-
-			printf("\n------------------------\n");
-			printf("[STEP 5] Starting simulation\n");
-			printf("------------------------\n");
-			printf("CMF is %s\n", CMFS[ cmf-1 ] );
-			printf("To exit simulation press the 'Ctrl C' keys on your keyboard\n");
+		printf("CMF is %s\n", CMFS[ cmf-1 ] );
+		printf("To exit simulation press the 'Ctrl C' keys on your keyboard\n");
 
 
-			while ( RUNFOEVA ) {
+		while ( RUNFOEVA ) {
 
-				printf("\nPlease enter %d-bit hexidecimal address: ", addr_bits);
-				scanf( "%x", &hex_addr );
-				
-				printf("Entered Hexidecimal (Base-16) address %02X (Base-10 value %d)\n", hex_addr, hex_addr );
+			printf("\nPlease enter %d-bit hexidecimal address: ", addr_bits);
+			scanf( "%x", &hex_addr );
 
-				// My implementation of cread. Returns the value in physical memory or FAIL if empty
-				byte = cread( cmf, &hex_addr, &found, &replace );
-				if ( byte != FAIL ) {
+			printf("Entered Hexidecimal (Base-16) address %02X (Base-10 value %d)\n", hex_addr, hex_addr );
 
-					printf("[%s:%s] The byte value at memory address %02X is %02X\n", OP[found], ROP[replace], hex_addr, byte );
+			byte = cread( cmf, &hex_addr, &found, &replace );
 
-				} else {
+			if ( byte != FAIL ) {
 
-					printf("Failed to read cache for memory location %02X\n", hex_addr );
+				printf("[%s:%s] The byte value at memory address %02X is %02X\n", OP[found], ROP[replace], hex_addr, byte );
 
-				}
+			} else {
+
+				printf("Failed to read cache for memory location %02X\n", hex_addr );
 
 			}
 
