@@ -68,17 +68,9 @@ int retVal = FAIL;
 // Direct Mapping
 if(cmf == 1) 
 {
-	/*
-	https://www.geeksforgeeks.org/extract-k-bits-given-position-number/
-	extract tag, line, and offset numbers as decimal from hex_addr
-	NOTE: "*" dereferences hex_addr, giving the value at the address rather than the address
-	*/
-	// take 3 ints to the left starting at index 6 (inclusive, starting at 1)
-	int tag_num = (((1 << 3) - 1) & (*hex_addr >> (6 - 1)));
-	// take 3 ints to the left starting at index 3 (inclusive) 
-	int line_num = (((1 << 3) - 1) & (*hex_addr >> (3 - 1)));
-	// take 2 ints to the left starting at index 1 (inclusive)
-	int offset_num = (((1 << 2) - 1) & (*hex_addr >> (1 - 1)));
+	int tag_num = (*hex_addr) >> 5;
+	int line_num = ( (*hex_addr) & 28 ) >> 2;
+	int offset_num = (*hex_addr) & 3;
 
 	if( cache[line_num]->tag == UNK ) { // cache line is empty
 		//printf("look in line %d\n", line_num);
@@ -126,10 +118,9 @@ if(cmf == 1)
 
 // Fully Associative
 else { 
-	// starting at index 6 (inclusive), take 3 ints to the left
-	int tag_num= (((1 << 6) - 1) & (*hex_addr >> (3 - 1)));
-	// starting at index 1 (inclusive), take 2 ints to the left
-	int offset_num= (((1 << 2) - 1) & (*hex_addr >> (1 - 1)));
+
+	int tag_num = (*hex_addr) >> 2;
+	int offset_num = (*hex_addr) & 3;
 
 	for ( int line=0; line < NUM_OF_LINES; line++ ) { // search cache for tag_num
 		if(cache[line]->tag == tag_num) { // CACHE HIT

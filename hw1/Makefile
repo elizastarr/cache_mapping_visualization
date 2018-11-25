@@ -22,5 +22,5 @@ run:
 	./hw1 memory.txt
 
 tarball:
-	tar -cvzf starr.tar.gz *
+	tar -cvzf starr.tar.gz cache.c memory.c
 
