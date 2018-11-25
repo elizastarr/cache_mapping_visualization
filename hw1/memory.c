@@ -109,3 +109,48 @@ void initialzeBlockPointers( unsigned int num_of_blocks, unsigned int num_block_
 	}
 
 } // end initalizeBlockPointers function
+
+unsigned int readAddressesFile( char* file_name ) {
+
+	// -------------------------------------
+	// Please do not modify this code
+	// -------------------------------------
+
+	int addr_cnt = 0;
+	int num_addresses = 0;
+	int r_flag;
+
+	FILE* fhnd;
+
+    	fhnd = fopen( file_name, "r" );
+
+    	if ( fhnd != NULL ) { // if the file is not empty
+
+		addresses = malloc( sizeof(unsigned int)*MAX_SIZE );
+
+		r_flag = fscanf( fhnd, "%x\n", &addresses[addr_cnt] );
+
+		while ( r_flag != EOF ) {
+
+			addr_cnt++;
+
+			r_flag = fscanf( fhnd, "%x\n", &addresses[addr_cnt] );
+
+		}
+
+		addresses[addr_cnt] = '\0'; // end character?
+        	
+
+    	} else addr_cnt = READ_ERROR;
+
+    	fclose( fhnd );
+
+	if ( MEM_DEBUG ) {
+		printf("Number of bytes read %d\n", addr_cnt );
+	}
+
+	num_addresses = addr_cnt;
+
+	return num_addresses;
+
+} // end readAddressesFile function

@@ -29,7 +29,9 @@
 // --------------------------------
 unsigned int* phy_memory;
 unsigned int* block_location;
+unsigned int* addresses;
 unsigned int addr_bits;
+unsigned int num_addresses;
 
 
 // --------------------------------
