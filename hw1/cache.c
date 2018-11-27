@@ -43,8 +43,9 @@ int initializeCache(cache_line** cache, unsigned int number_of_lines ) {
 
 
 //begin dm_simulation function
-int dm_simulation(int* addresses[]){
+int dm_simulation() {
 	int found = MISS;
+	int replace;
 	int num_addrs = sizeof addresses / sizeof *addresses;
 	int retVal = FAIL;
 
@@ -54,7 +55,8 @@ int dm_simulation(int* addresses[]){
 	int cache_replace_count = 0;
 
 	//Initalize the cache for the simulation
-	cache_line** dm_cache = initializeCache(dm_cache, NUM_OF_LINES);
+	cache_line** dm_cache; 
+	initializeCache(dm_cache, NUM_OF_LINES);
 
 	//Begin the simulation
 	for(int addr = 0; addr < num_addrs; addr++){
@@ -70,7 +72,7 @@ int dm_simulation(int* addresses[]){
 			replace = NO;
 
 			//fetch from physical memory
-			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1));
+			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1)));
 			int start_addr = block_location[block_num];
 			retVal = phy_memory[start_addr + offset_num];
 
@@ -106,12 +108,16 @@ int dm_simulation(int* addresses[]){
         	dm_cache[line_num]->tag = tag_num;
 		}
 	}
+
+	return retVal;
+
 }//end dm_simulation function
 
 
 //begin fa_simulation function
-int fa_simulation(unsigned int* addresses){
+int fa_simulation(){
 	int found = MISS;
+	int replace;
 	int num_addrs = sizeof addresses / sizeof *addresses;
 	int retVal = FAIL;
 
@@ -120,8 +126,9 @@ int fa_simulation(unsigned int* addresses){
 	int cache_miss_count = 0;
 	int cache_replace_count = 0;
 
-	//Initalize the cache for the simulation
-	cache_line** fa_cache = initializeCache(fa_cache, NUM_OF_LINES);
+	///Initalize the cache for the simulation
+	cache_line** fa_cache; 
+	initializeCache(fa_cache, NUM_OF_LINES);
 
 	//begin fa_simulation
 	for(int addr = 0; addr < num_addrs; addr++){
@@ -162,9 +169,13 @@ int fa_simulation(unsigned int* addresses){
 				}
 			}
 
-			if(min == 0){printf("Empty line found\n"); replace = NO;}
-
-			else{replace = YES; cache_replace_count++;}
+			if ( min == 0 ) {
+				printf("Empty line found\n"); 
+				replace = NO;
+			} else {
+				replace = YES; 
+				cache_replace_count++;
+			}
 
 			//fetch the value from memory
 			int start_addr = block_location[tag_num];
@@ -176,12 +187,16 @@ int fa_simulation(unsigned int* addresses){
 
 		}
 	}
+
+	return retVal;
+
 }
 
 
 //begin sa_simulation function
-int sa_simulation(unsigned int* set_size, int* addresses[]){
+int sa_simulation(unsigned int* set_size){
 	int found = MISS;
+	int replace;
 	int num_addrs = sizeof addresses / sizeof *addresses;
 	int retVal = FAIL;
 	int num_sets = NUM_OF_LINES / *set_size;
@@ -192,7 +207,8 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 	int cache_replace_count = 0;
 
 	//Initalize the cache for the simulation
-	cache_line** sa_cache = initializeCache(sa_cache, NUM_OF_LINES);
+	cache_line** sa_cache; 
+	initializeCache(sa_cache, NUM_OF_LINES);
 
 	//Begin the simulation
 	for(int addr = 0; addr < num_addrs; addr++){
@@ -204,7 +220,7 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 			int offset_num = (addresses[addr]) & 3;
 		}
 		else if(*set_size == FOUR_WAY){
-			int index_num == ((addresses[addr]) & 4) >> 2;
+			int index_num = ((addresses[addr]) & 4) >> 2;
 			int tag_num = (addresses[addr]) >> 3;
 			int offset_num = (addresses[addr]) & 3;
 		}
@@ -231,7 +247,7 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 					else{
 						if(sa_cache[sa_line]->tag = UNK){
 							if(CACHE_DEBUG){printf("Empty line!\n");}
-							cache_miss_count++
+							cache_miss_count++;
 							found = NO;
 							replace = NO;
 
@@ -274,9 +290,12 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 			}
 		}
 	}
+
+	return retVal;
+
 }
 
-void cprint() {
+void cprint( cache_line** cache ) {
 
 	unsigned int line;
 
@@ -284,10 +303,10 @@ void cprint() {
 	printf("line\ttag\tnum of hits\n");
 	printf("---------------------------------------------\n");
 
-	for ( line=0; line<NUM_OF_LINES; line++ ) {
+	for ( line=0; line<NUM_OF_LINES; line++ ) { 
 
 		if ( cache[line]->tag == UNK ) {
-
+			
 			printf("%d\t%d\t%d\n", line, cache[line]->tag, cache[line]->hit_count );
 
 		} else {

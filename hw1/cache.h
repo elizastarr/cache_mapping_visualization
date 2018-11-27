@@ -83,7 +83,18 @@ int initializeCache( cache_line** cache, unsigned int number_of_lines );
 // Return: OK if successful, FAIL on error
 */
 
-int dm_simulation(unsigned int* addresses[]);
+int dm_simulation();
+
+
+// ------------------------------------
+// Function prototype that creates and
+// runs a simulation for a Fully
+// Associative cache. Tracks cache hits and misses and
+// the number of line replacements
+//
+// Return: OK if successful, FAIL on error
+
+int fa_simulation();
 
 
 /* ------------------------------------
@@ -97,18 +108,7 @@ int dm_simulation(unsigned int* addresses[]);
 // Return: OK if successful, FAIL on error
 */
 
-int sa_simulation(unsigned int* set_size, unsigned int* addresses[]);
-
-
-// ------------------------------------
-// Function prototype that creates and
-// runs a simulation for a Fully
-// Associative cache. Tracks cache hits and misses and
-// the number of line replacements
-//
-// Return: OK if successful, FAIL on error
-
-int fa_simulation(unsigned int* addresses[]);
+int sa_simulation(unsigned int* set_size);
 
 
 // ------------------------------------

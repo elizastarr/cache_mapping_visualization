@@ -95,7 +95,7 @@ int main( int argc, char *argv[] ) {
 			pthread_t dm_t, fa_t, sa_t;
 			pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL );
 			pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL );
-			pthread_create(&sa_t, NULL, (void *) sa_simulation, NULL );
+			pthread_create(&sa_t, NULL, (void *) sa_simulation, 2 );
 
 		} else {
 
