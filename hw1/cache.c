@@ -1,9 +1,8 @@
-
 // -----------------------------------
 // CSCI 340 - Operating Systems
 // Fall 2018
 // cache.c file
-// 
+//
 // Homework 1
 //
 // -----------------------------------
@@ -14,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-int initializeCache( unsigned int number_of_lines ) {
+int initializeCache(cache_line** cache, unsigned int number_of_lines ) {
 
 	int line, retVal;
 
@@ -41,146 +40,241 @@ int initializeCache( unsigned int number_of_lines ) {
 	return retVal;
 
 } // end initializeCache function
- 
-int cread( unsigned int cmf, unsigned int* hex_addr, unsigned int* found, unsigned int* replace ) {
 
-	/* TODO: You complete
 
-// ------------------------------------
-// Function prototype that reads the cache 
-// and returns the byte at the specified 
-// physical memory address location.
-// 
-//
-// Arguments:	cache mapping function (cmf)
-//		memory address pointer (hex_addr)
-//		found variable pointer (1=cache hit, 0=cache miss)
-//		replace variable pointer (1=replacment, 0=no replacement)
-//
-// Return:     	byte value at specified memory location (no error)
-//		FAIL (error)
-//
-	*/
+//begin dm_simulation function
+int dm_simulation(int* addresses[]){
+	int found = MISS;
+	int num_addrs = sizeof addresses / sizeof *addresses;
+	int retVal = FAIL;
 
-int retVal = FAIL;
-*found = MISS;
+	//Initalize variables for monitoring cache performance
+	int cache_hit_count = 0;
+	int cache_miss_count = 0;
+	int cache_replace_count = 0;
 
-// Direct Mapping
-if(cmf == 1) 
-{
-	int tag_num = (*hex_addr) >> 5;
-	int line_num = ( (*hex_addr) & 28 ) >> 2;
-	int offset_num = (*hex_addr) & 3;
+	//Initalize the cache for the simulation
+	cache_line** dm_cache = initializeCache(dm_cache, NUM_OF_LINES);
 
-	if( cache[line_num]->tag == UNK ) { // cache line is empty
-		//printf("look in line %d\n", line_num);
-		//printf("line is empty.\n");
-		*found = MISS;
-		*replace = NO;
+	//Begin the simulation
+	for(int addr = 0; addr < num_addrs; addr++){
 
-		// fetch from physical memory
-		// xxx xxx _ _ is the block_num ... IS THIS NECCESSARY?
-		int block_num = (((1 << 6) - 1) & (*hex_addr >> (3 - 1)));
-		int start_addr = block_location[block_num];
-		retVal = phy_memory[start_addr + offset_num];
+		int tag_num = (addresses[addr]) >> 5;
+    	int line_num = ( (addresses[addr]) & 28 ) >> 2;
+    	int offset_num = (addresses[addr]) & 3;
 
-		//printf("set tag to %d", tag_num);
-		// replace tag in cache
-		cache[line_num]->tag = tag_num;
-	}
-	else if ( cache[line_num]->tag == tag_num ) { // CACHE HIT
-		//printf("look in line %d\n", line_num);
-		//printf("found tag num at line num. Hit.");
-		*found = HIT;
-		*replace = NO;
+		if(dm_cache[line_num]->tag == UNK){
+			if(CACHE_DEBUG){printf("Line %d is empty!\n", line_num);}
 
-		// get value
-		int block_num = (((1 << 6) - 1) & (*hex_addr >> (3 - 1)));
-		int start_addr = block_location[block_num];
-		retVal = phy_memory[start_addr + offset_num];
-	}
-	else { // MISS, but cache line is not empty
-		//printf("look in line %d \n", line_num);
-		//printf("Wrong tag num at line num. Miss and replace.");
-		*found = MISS;
-		*replace = YES;
+			found = MISS;
+			replace = NO;
 
-		// fetch from physical memory
-		int block_num = (((1 << 6) - 1) & (*hex_addr >> (3 - 1)));
-		int start_addr = block_location[block_num];
-		retVal = phy_memory[start_addr + offset_num];
-
-		// replace tag in cache
-		cache[line_num]->tag = tag_num;
-	}
-	
-} 
-
-// Fully Associative
-else { 
-
-	int tag_num = (*hex_addr) >> 2;
-	int offset_num = (*hex_addr) & 3;
-
-	for ( int line=0; line < NUM_OF_LINES; line++ ) { // search cache for tag_num
-		if(cache[line]->tag == tag_num) { // CACHE HIT
-			*found = HIT;
-			*replace = NO;
-
-			// get value
-			int start_addr = block_location[tag_num];
+			//fetch from physical memory
+			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1));
+			int start_addr = block_location[block_num];
 			retVal = phy_memory[start_addr + offset_num];
 
-			// update cache hit_count
-			cache[line]->hit_count += 1;
+			//update the cache
+			dm_cache[line_num]->tag = tag_num;
+		}
 
-			break;
+		else if(dm_cache[line_num]->tag == tag_num){
+			if(CACHE_DEBUG){printf("Cache hit!\n");}
+
+			found = HIT;
+			replace = NO;
+			cache_hit_count++;
+
+			//get the value from the cache
+			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1)));
+        	int start_addr = block_location[block_num];
+        	retVal = phy_memory[start_addr + offset_num];
+		}
+
+		else{
+			if(CACHE_DEBUG){printf("Cache miss!\n");}
+
+			found = MISS;
+			replace = YES;
+			cache_miss_count++;
+			cache_replace_count++;
+
+			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1)));
+        	int start_addr = block_location[block_num];
+        	retVal = phy_memory[start_addr + offset_num];
+
+        	dm_cache[line_num]->tag = tag_num;
 		}
 	}
-	if(*found == MISS) { // the address is not in the cache
-		*found == MISS; // for clarity
-		
-		// replacement function (LFU)
-		int min = cache[0]->hit_count;
-		int min_inx = 0;
-		for ( int i=1; i < NUM_OF_LINES; i++ ) {
-			if( cache[i]->hit_count < min){
-				min = cache[i]->hit_count;
-				min_inx = i;
+}//end dm_simulation function
+
+
+//begin fa_simulation function
+int fa_simulation(unsigned int* addresses){
+	int found = MISS;
+	int num_addrs = sizeof addresses / sizeof *addresses;
+	int retVal = FAIL;
+
+	//Initalize variables for monitoring cache performance
+	int cache_hit_count = 0;
+	int cache_miss_count = 0;
+	int cache_replace_count = 0;
+
+	//Initalize the cache for the simulation
+	cache_line** fa_cache = initializeCache(fa_cache, NUM_OF_LINES);
+
+	//begin fa_simulation
+	for(int addr = 0; addr < num_addrs; addr++){
+
+		//Initalize address bit values
+		int tag_num = (addresses[addr]) >> 5;
+    	int offset_num = (addresses[addr]) & 3;
+
+		for(int line = 0; line < NUM_OF_LINES; line++){
+			if(fa_cache[line]->tag == tag_num){
+				if(CACHE_DEBUG){printf("Cache hit!\n");}
+
+				found = HIT;
+				replace = NO;
+				cache_hit_count++;
+
+				//get value from memory
+				int start_addr = block_location[tag_num];
+				retVal = phy_memory[start_addr + offset_num];
+
+				//update cache hit_count
+				fa_cache[line]->hit_count += 1;
+				break;
 			}
 		}
 
-		if(min == 0) { // empty cache line
-			*replace = NO;
-		}
-		else {
-			*replace = YES; // not an empty cache line
-		}
+		if(found == MISS){
+			found = MISS;
+			cache_miss_count++;
 
-		// fetch value from main memory
-		int start_addr = block_location[tag_num];
-		retVal = phy_memory[start_addr + offset_num];
+			//replace based on LRU
+			int min = fa_cache[0]->hit_count;
+			int min_inx = 0;
+			for(int i = 0; i < NUM_OF_LINES; i++){
+				if(fa_cache[i]->hit_count < min){
+					min = fa_cache[i]->hit_count;
+					min_inx = i;
+				}
+			}
 
-		// update cache with tag and set hit_count to 1
-		cache[min_inx]->tag = tag_num;
-		cache[min_inx]->hit_count = 1;
+			if(min == 0){printf("Empty line found\n"); replace = NO;}
+
+			else{replace = YES; cache_replace_count++;}
+
+			//fetch the value from memory
+			int start_addr = block_location[tag_num];
+			retVal = phy_memory[start_addr + offset_num];
+
+			//update cache and set hit_count to 1
+			fa_cache[min_inx]->tag = tag_num;
+			fa_cache[min_inx]->hit_count = 1;
+
+		}
 	}
 }
 
-/*
-printf("\ncache\n");
 
-for ( int i=0; i < NUM_OF_LINES; i++ ) {
-			printf("%d hit_count %d   ", i, cache[i]->hit_count);
-			printf("tag %d", cache[i]->tag);
-			printf("\n");
+//begin sa_simulation function
+int sa_simulation(unsigned int* set_size, int* addresses[]){
+	int found = MISS;
+	int num_addrs = sizeof addresses / sizeof *addresses;
+	int retVal = FAIL;
+	int num_sets = NUM_OF_LINES / *set_size;
+
+	//Initalize variables for monitoring cache performance
+	int cache_hit_count = 0;
+	int cache_miss_count = 0;
+	int cache_replace_count = 0;
+
+	//Initalize the cache for the simulation
+	cache_line** sa_cache = initializeCache(sa_cache, NUM_OF_LINES);
+
+	//Begin the simulation
+	for(int addr = 0; addr < num_addrs; addr++){
+
+		//Initalize address bit values for 2-way SA
+		if(*set_size == TWO_WAY){
+			int index_num = ((addresses[addr]) & 12) >> 2;
+			int tag_num = (addresses[addr]) >> 4;
+			int offset_num = (addresses[addr]) & 3;
 		}
-*/
+		else if(*set_size == FOUR_WAY){
+			int index_num == ((addresses[addr]) & 4) >> 2;
+			int tag_num = (addresses[addr]) >> 3;
+			int offset_num = (addresses[addr]) & 3;
+		}
 
-return retVal;
+		//loop through the sets
+		for(int set = 0; set < num_sets; set++){
+			if(set == index_num){
+				//loop through each line in the set to check the tags
+				for(int set_line = 0; set_line < *set_size; set_line ++){
+					int sa_line = (2 * set) + set_line;
 
-} // end cread function
+					if(sa_cache[sa_line]->tag == tag_num){
+						if(CACHE_DEBUG){printf("Cache hit!\n");}
+						found = HIT;
+						replace = NO;
+						cache_hit_count++;
 
+						int start_addr = block_location[tag_num];
+						retVal = phy_memory[start_addr + offset_num];
+
+						sa_cache[sa_line]->hit_count += 1;
+						break;
+					}
+					else{
+						if(sa_cache[sa_line]->tag = UNK){
+							if(CACHE_DEBUG){printf("Empty line!\n");}
+							cache_miss_count++
+							found = NO;
+							replace = NO;
+
+							int start_addr = block_location[tag_num];
+							retVal = phy_memory[start_addr + offset_num];
+
+							sa_cache[sa_line]->tag = tag_num;
+							sa_cache[sa_line]->hit_count = 1;
+							break;
+						}
+					}
+				}
+				//replace a line in the set using LRU
+				if(found == MISS){
+					if(CACHE_DEBUG){printf("Cache miss!\n");}
+					found = MISS;
+					cache_miss_count++;
+
+					int min_inx = 0;
+					for(int i = 0; i < *set_size; i++){
+						sa_cache_line = (*set_size * set) + i;
+						if(sa_cache[sa_cache_line]->hit_count < min){
+							min = sa_cache[sa_cache_line]->hit_count;
+							min_inx = i;
+						}
+					}
+
+					if(min == 0){printf("Empty line found!\n"); replace = NO;}
+
+					else{replace = YES; cache_replace_count++;}
+
+					//fetch the value from memory
+					int start_addr = block_location[tag_num];
+					retVal = phy_memory[start_addr + offset_num];
+
+					//update the cache and set hit count to 1
+					sa_cache[(*set_size) * set + min_inx]->tag = tag_num;
+					sa_cache[(*set_size) * set + min_inx]->hit_count = 1;
+				}
+			}
+		}
+	}
+}
 
 void cprint() {
 
@@ -190,10 +284,10 @@ void cprint() {
 	printf("line\ttag\tnum of hits\n");
 	printf("---------------------------------------------\n");
 
-	for ( line=0; line<NUM_OF_LINES; line++ ) { 
+	for ( line=0; line<NUM_OF_LINES; line++ ) {
 
 		if ( cache[line]->tag == UNK ) {
-			
+
 			printf("%d\t%d\t%d\n", line, cache[line]->tag, cache[line]->hit_count );
 
 		} else {

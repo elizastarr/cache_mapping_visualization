@@ -24,6 +24,8 @@
 
 #define NUM_OF_INDEX_BITS_2WAY_SA 2
 #define NUM_OF_TAG_BITS_2WAY_SA 4
+#define TWO_WAY 4
+#define FOUR_WAY 2
 
 #define NUM_OF_INDEX_BITS_4WAY_SA 1
 #define NUM_OF_TAG_BITS_4WAY_SA 5
@@ -50,7 +52,7 @@ typedef struct {
 
 } cache_line;
 
-// --------------------------------
+/* --------------------------------
 // GLOBAL Variables
 // --------------------------------
 
@@ -64,35 +66,38 @@ typedef struct {
 //              int number_of_lines
 //
 // Return:     	OK on success, FAIL on error
-//
+*/
 
 int initializeCache( cache_line** cache, unsigned int number_of_lines );
 
 
-// ------------------------------------
+/* ------------------------------------
 // Function prototype that creates and
 // runs a simulation for a Direct Mapped
 // cache. Tracks cache hits and misses and
 // the number of line replacements
 //
-// Return: OK if successful, FAIL on error
+// Arguments: int pointer to the address (hex_addr)
+//            pointer to array of addresses to access
 //
+// Return: OK if successful, FAIL on error
+*/
 
-int dm_simulation();
+int dm_simulation(unsigned int* addresses[]);
 
 
-// ------------------------------------
+/* ------------------------------------
 // Function prototype that creates and
 // runs a simulation for a Set Associative
 // cache. Tracks cache hits and misses and
 // the number of line replacements
 //
-// Arguments: set associativity value (sa_val)
+// Arguments: set associativity value (set_size)
 //
 // Return: OK if successful, FAIL on error
-//
+*/
 
-int sa_simulation(unsigned int* sets);
+int sa_simulation(unsigned int* set_size, unsigned int* addresses[]);
 
 
 // ------------------------------------
@@ -103,7 +108,7 @@ int sa_simulation(unsigned int* sets);
 //
 // Return: OK if successful, FAIL on error
 
-int fa_simulation();
+int fa_simulation(unsigned int* addresses[]);
 
 
 // ------------------------------------
