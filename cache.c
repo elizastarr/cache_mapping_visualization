@@ -43,9 +43,11 @@ int initializeCache(cache_line** cache, unsigned int number_of_lines ) {
 
 
 //begin dm_simulation function
-int dm_simulation(int* addresses[]){
+int dm_simulation(){
 	int found = MISS;
-	int num_addrs = sizeof addresses / sizeof *addresses;
+	int replace = NO;
+	int num_addrs = sizeof *addresses / sizeof *addresses[0];
+	if(CACHE_DEBUG){printf("Number of addresses in addresses.txt is: %d\n", num_addrs);}
 	int retVal = FAIL;
 
 	//Initalize variables for monitoring cache performance
@@ -54,14 +56,15 @@ int dm_simulation(int* addresses[]){
 	int cache_replace_count = 0;
 
 	//Initalize the cache for the simulation
-	cache_line** dm_cache = initializeCache(dm_cache, NUM_OF_LINES);
+	cache_line** dm_cache;
+	initializeCache(dm_cache, NUM_OF_LINES);
 
 	//Begin the simulation
 	for(int addr = 0; addr < num_addrs; addr++){
 
-		int tag_num = (addresses[addr]) >> 5;
-    	int line_num = ( (addresses[addr]) & 28 ) >> 2;
-    	int offset_num = (addresses[addr]) & 3;
+		int tag_num = (*addresses[addr]) >> 5;
+    	int line_num = ( (*addresses[addr]) & 28 ) >> 2;
+    	int offset_num = (*addresses[addr]) & 3;
 
 		if(dm_cache[line_num]->tag == UNK){
 			if(CACHE_DEBUG){printf("Line %d is empty!\n", line_num);}
@@ -70,7 +73,7 @@ int dm_simulation(int* addresses[]){
 			replace = NO;
 
 			//fetch from physical memory
-			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1));
+			int block_num = (((1 << 6) - 1) & (*addresses[addr] >> (3 - 1)));
 			int start_addr = block_location[block_num];
 			retVal = phy_memory[start_addr + offset_num];
 
@@ -86,7 +89,7 @@ int dm_simulation(int* addresses[]){
 			cache_hit_count++;
 
 			//get the value from the cache
-			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1)));
+			int block_num = (((1 << 6) - 1) & (*addresses[addr] >> (3 - 1)));
         	int start_addr = block_location[block_num];
         	retVal = phy_memory[start_addr + offset_num];
 		}
@@ -99,20 +102,23 @@ int dm_simulation(int* addresses[]){
 			cache_miss_count++;
 			cache_replace_count++;
 
-			int block_num = (((1 << 6) - 1) & (addresses[addr] >> (3 - 1)));
+			int block_num = (((1 << 6) - 1) & (*addresses[addr] >> (3 - 1)));
         	int start_addr = block_location[block_num];
         	retVal = phy_memory[start_addr + offset_num];
 
         	dm_cache[line_num]->tag = tag_num;
 		}
 	}
+	return OK;
 }//end dm_simulation function
 
 
 //begin fa_simulation function
-int fa_simulation(unsigned int* addresses){
+int fa_simulation(){
 	int found = MISS;
-	int num_addrs = sizeof addresses / sizeof *addresses;
+	int replace = NO;
+	int num_addrs = sizeof *addresses / sizeof *addresses[0];
+	if(CACHE_DEBUG){printf("Number of addresses in addresses.txt is: %d\n", num_addrs);}
 	int retVal = FAIL;
 
 	//Initalize variables for monitoring cache performance
@@ -121,14 +127,15 @@ int fa_simulation(unsigned int* addresses){
 	int cache_replace_count = 0;
 
 	//Initalize the cache for the simulation
-	cache_line** fa_cache = initializeCache(fa_cache, NUM_OF_LINES);
+	cache_line** fa_cache;
+	initializeCache(fa_cache, NUM_OF_LINES);
 
 	//begin fa_simulation
 	for(int addr = 0; addr < num_addrs; addr++){
 
 		//Initalize address bit values
-		int tag_num = (addresses[addr]) >> 5;
-    	int offset_num = (addresses[addr]) & 3;
+		int tag_num = (*addresses[addr]) >> 5;
+    	int offset_num = (*addresses[addr]) & 3;
 
 		for(int line = 0; line < NUM_OF_LINES; line++){
 			if(fa_cache[line]->tag == tag_num){
@@ -176,13 +183,16 @@ int fa_simulation(unsigned int* addresses){
 
 		}
 	}
+	return OK;
 }
 
 
 //begin sa_simulation function
-int sa_simulation(unsigned int* set_size, int* addresses[]){
+int sa_simulation(unsigned int* set_size){
 	int found = MISS;
-	int num_addrs = sizeof addresses / sizeof *addresses;
+	int replace = NO;
+	int num_addrs = sizeof *addresses / sizeof *addresses[0];
+	if(CACHE_DEBUG){printf("Number of addresses in addresses.txt is: %d\n", num_addrs);}
 	int retVal = FAIL;
 	int num_sets = NUM_OF_LINES / *set_size;
 
@@ -192,21 +202,25 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 	int cache_replace_count = 0;
 
 	//Initalize the cache for the simulation
-	cache_line** sa_cache = initializeCache(sa_cache, NUM_OF_LINES);
+	cache_line** sa_cache;
+	initializeCache(sa_cache, NUM_OF_LINES);
 
 	//Begin the simulation
 	for(int addr = 0; addr < num_addrs; addr++){
 
-		//Initalize address bit values for 2-way SA
+		//Initalize address bit values
+		int index_num = UNK;
+		int tag_num = UNK;
+		int offset_num = UNK;
 		if(*set_size == TWO_WAY){
-			int index_num = ((addresses[addr]) & 12) >> 2;
-			int tag_num = (addresses[addr]) >> 4;
-			int offset_num = (addresses[addr]) & 3;
+			index_num = (*(addresses[addr]) & 12) >> 2;
+			tag_num = *(addresses[addr]) >> 4;
+			offset_num = *(addresses[addr]) & 3;
 		}
 		else if(*set_size == FOUR_WAY){
-			int index_num == ((addresses[addr]) & 4) >> 2;
-			int tag_num = (addresses[addr]) >> 3;
-			int offset_num = (addresses[addr]) & 3;
+			index_num = (*(addresses[addr]) & 4) >> 2;
+			tag_num = *(addresses[addr]) >> 3;
+			offset_num = *(addresses[addr]) & 3;
 		}
 
 		//loop through the sets
@@ -229,9 +243,9 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 						break;
 					}
 					else{
-						if(sa_cache[sa_line]->tag = UNK){
+						if(sa_cache[sa_line]->tag == UNK){
 							if(CACHE_DEBUG){printf("Empty line!\n");}
-							cache_miss_count++
+							cache_miss_count++;
 							found = NO;
 							replace = NO;
 
@@ -251,8 +265,9 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 					cache_miss_count++;
 
 					int min_inx = 0;
+					int min = sa_cache[(*set_size) * set]->hit_count;
 					for(int i = 0; i < *set_size; i++){
-						sa_cache_line = (*set_size * set) + i;
+						int sa_cache_line = ((*set_size) * set) + i;
 						if(sa_cache[sa_cache_line]->hit_count < min){
 							min = sa_cache[sa_cache_line]->hit_count;
 							min_inx = i;
@@ -274,9 +289,10 @@ int sa_simulation(unsigned int* set_size, int* addresses[]){
 			}
 		}
 	}
+	return OK;
 }
 
-void cprint() {
+void cprint(cache_line ** cache) {
 
 	unsigned int line;
 

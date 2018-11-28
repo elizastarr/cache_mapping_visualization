@@ -16,7 +16,7 @@
 #define FAIL -1
 
 // DEBUG FLAGS
-#define CACHE_DEBUG 0
+#define CACHE_DEBUG 1
 
 // Simulator parameters
 #define NUM_OF_LINE_BITS_DM 3
@@ -83,7 +83,7 @@ int initializeCache( cache_line** cache, unsigned int number_of_lines );
 // Return: OK if successful, FAIL on error
 */
 
-int dm_simulation(unsigned int* addresses[]);
+void dm_simulation();
 
 
 /* ------------------------------------
@@ -97,7 +97,7 @@ int dm_simulation(unsigned int* addresses[]);
 // Return: OK if successful, FAIL on error
 */
 
-int sa_simulation(unsigned int* set_size, unsigned int* addresses[]);
+void sa_simulation(unsigned int* set_size);
 
 
 // ------------------------------------
@@ -108,7 +108,7 @@ int sa_simulation(unsigned int* set_size, unsigned int* addresses[]);
 //
 // Return: OK if successful, FAIL on error
 
-int fa_simulation(unsigned int* addresses[]);
+void fa_simulation();
 
 
 // ------------------------------------
@@ -122,5 +122,5 @@ int fa_simulation(unsigned int* addresses[]);
 // Return:     	none
 //
 
-void cprint();
+void cprint(cache_line** cache);
 

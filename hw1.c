@@ -1,6 +1,7 @@
 #include <stdio.h>	// IO functions
 #include <stdlib.h> 	// std lib function
 #include <unistd.h>	// close function
+#include <pthread.h> 
 #include "memory.h"	// our code that represents physical memory
 #include "cache.h"	// our code that represents cache
 
@@ -32,10 +33,10 @@ char* CMFS[] = { "Direct Mapping", "Fully Associative", "Set Associative" };
 char* OP[] = { "MISS", "HIT" };
 char* ROP[] = { "No Replacement", "Replacement" };
 
+
 int main( int argc, char *argv[] ) {
 
 	unsigned int num_blocks;
-	unsigned int cmf;
 	unsigned int hex_addr;
 	
 	int byte;
@@ -77,62 +78,28 @@ int main( int argc, char *argv[] ) {
 
 		initialzeBlockPointers( num_blocks, NUM_BLOCK_OFFSET_BITS );
 
-		/*
-		---------------------------------------------------
-			STEP 3: threaded?
-		---------------------------------------------------
-		Initialize cache, that is, all the cache lines should 
-		be empty (i.e. no block of physical memory is loaded 
-		into any cache line).
-		
-		*/
-
 		printf("\n------------------------\n");
-		printf("[STEP 3] initializing cache\n");
+		printf("[STEP 3] Collecting addresses to be requested\n");
 		printf("------------------------\n");
 
-		initializeCache( NUM_OF_LINES );
+		num_addresses = readAddressesFile( "addresses.txt" );
 
-		/*
-		---------------------------------------------------
-			STEP 4:
-		---------------------------------------------------
-		Ask the user to enter physical a memory address location
-		in hexidecimal format (e.g. FA), then get and display
-		physical memory value from cache and display to user.
-		
-		*/
+		if ( num_addresses != READ_ERROR ) {
 
+			printf("\n------------------------\n");
+			printf("[STEP 3] Starting simulation\n");
+			printf("------------------------\n");
+			printf("To exit simulation press the 'Ctrl C' keys on your keyboard\n");
 
-		cmf = FA;
-		cmf = DM;
-		cmf = SA;
+			/* CREATE AND RUN THREADS */
+			pthread_t dm_t, fa_t, sa_t;
+			pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL );
+			pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL );
+			pthread_create(&sa_t, NULL, (void *) sa_simulation, NULL );
 
-		printf("\n------------------------\n");
-		printf("[STEP 4] Starting simulation\n");
-		printf("------------------------\n");
-		printf("CMF is %s\n", CMFS[ cmf-1 ] );
-		printf("To exit simulation press the 'Ctrl C' keys on your keyboard\n");
+		} else {
 
-
-		while ( RUNFOEVA ) {
-
-			printf("\nPlease enter %d-bit hexidecimal address: ", addr_bits);
-			scanf( "%x", &hex_addr );
-
-			printf("Entered Hexidecimal (Base-16) address %02X (Base-10 value %d)\n", hex_addr, hex_addr );
-
-			byte = cread( cmf, &hex_addr, &found, &replace );
-
-			if ( byte != FAIL ) {
-
-				printf("[%s:%s] The byte value at memory address %02X is %02X\n", OP[found], ROP[replace], hex_addr, byte );
-
-			} else {
-
-				printf("Failed to read cache for memory location %02X\n", hex_addr );
-
-			}
+			printf("Unable to read the address file ( %s ) ... exiting\n", argv[1] );
 
 		}
 

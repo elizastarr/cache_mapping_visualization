@@ -19,7 +19,7 @@ clean:
 	/bin/rm -f hw1 *.o *.gz
 
 run:
-	./hw1 memory.txt
+	./hw1 memory.txt addresses.txt
 
 tarball:
 	tar -cvzf starr.tar.gz cache.c memory.c
