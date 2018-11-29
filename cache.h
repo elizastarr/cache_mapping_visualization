@@ -58,9 +58,13 @@ typedef struct {
 // GLOBAL Variables
 // --------------------------------
 
-sem_t DM;
-sem_t FA;
-sem_t SA;
+sem_t dm_sem;
+sem_t fa_sem;
+sem_t sa_sem;
+
+cache_line** dm_cache;
+cache_line** fa_cache;
+cache_line** sa_cache;
 
 // ------------------------------------
 // Function prototype that initializes the
@@ -92,6 +96,17 @@ int initializeCache( cache_line** cache, unsigned int number_of_lines );
 void dm_simulation();
 
 
+// ------------------------------------
+// Function prototype that creates and
+// runs a simulation for a Fully
+// Associative cache. Tracks cache hits and misses and
+// the number of line replacements
+//
+// Return: OK if successful, FAIL on error
+
+void fa_simulation();
+
+
 /* ------------------------------------
 // Function prototype that creates and
 // runs a simulation for a Set Associative
@@ -104,17 +119,6 @@ void dm_simulation();
 */
 
 void sa_simulation(unsigned int* set_size);
-
-
-// ------------------------------------
-// Function prototype that creates and
-// runs a simulation for a Fully
-// Associative cache. Tracks cache hits and misses and
-// the number of line replacements
-//
-// Return: OK if successful, FAIL on error
-
-void fa_simulation();
 
 
 // ------------------------------------

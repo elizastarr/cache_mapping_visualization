@@ -65,19 +65,26 @@ int main( int argc, char *argv[] ) {
 			---------------------------------------------------
 			Initialize the block points, i.e. determine the physical
 			memory starting address for each block.
+			Initialize the caches.
 			
 		*/
 
 		initialzeBlockPointers( num_blocks, NUM_BLOCK_OFFSET_BITS );
+		initializeCaches( NUM_OF_LINES );
 
 		printf("\n------------------------\n");
 		printf("[STEP 2] Collecting addresses to be read\n");
 		printf("------------------------\n");
 
 		num_addresses = readAddressesFile( "addresses.txt" );
+		
 
 		if ( num_addresses != READ_ERROR ) {
+
 			printf("Success.\n");
+			for(int i = 0; i < num_addresses; i++){
+				printf("addresses[%d] = %d\n", i, addresses[i]);
+			}
 
 			printf("\n------------------------\n");
 			printf("[STEP 3] Starting simulation\n");
@@ -87,12 +94,12 @@ int main( int argc, char *argv[] ) {
 			/* INITIALIZE SEMAPHORES */
 			printf("Initializing semaphores.\n");
 
-			sem_init(&DM, 0, 1); // first DM runs
-			sem_init(&FA, 0, 0); // then FA runs
-			sem_init(&SA, 0, 0); // lastly SA runs
+			sem_init(&dm_sem, 0, 1); // first DM runs
+			sem_init(&fa_sem, 0, 0); // then FA runs
+			sem_init(&sa_sem, 0, 0); // lastly SA runs
 
 			/* CREATE AND RUN THREADS */
-			printf("Running simulation threads.\n");
+			printf("Running simulation threads.\n\n");
 			
 			pthread_t dm_t, fa_t, sa_t;
 
@@ -102,11 +109,11 @@ int main( int argc, char *argv[] ) {
 			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL ) != 0)
         		perror("FA thread failed"), exit(1); 
 			
-			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, NULL ) != 0)
+			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, TWO_WAY ) != 0)
         		perror("SA thread failed"), exit(1); 
+			
 
 			/* JOIN THREADS */
-			printf("Simulation is terminating.\n");
 
 			if (pthread_join(dm_t, NULL) != 0)
         		perror("DM join failed"),exit(1);
@@ -116,7 +123,7 @@ int main( int argc, char *argv[] ) {
 
 			if (pthread_join(sa_t, NULL) != 0)
         		perror("SA join failed"),exit(1);
-
+			
 		} else {
 
 			printf("Unable to read the address file ( %s ) ... exiting\n", argv[1] );
