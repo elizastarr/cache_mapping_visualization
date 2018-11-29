@@ -4,7 +4,7 @@ CFLAGS=-c -Wall -g #-std=c11
 all: hw1
 
 hw1: memory.o cache.o hw1.o
-	$(CC) memory.o cache.o hw1.o -o hw1 -lm
+	$(CC) memory.o cache.o hw1.o -o hw1 -lpthread -lm
 
 memory.o: memory.c
 	$(CC) $(CFLAGS) memory.c

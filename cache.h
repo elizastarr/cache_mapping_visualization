@@ -7,6 +7,8 @@
 //
 // -----------------------------------
 
+#include <semaphore.h>
+#include <pthread.h>
 
 // --------------------------------
 // CONSTANTS
@@ -52,9 +54,13 @@ typedef struct {
 
 } cache_line;
 
-/* --------------------------------
+// --------------------------------
 // GLOBAL Variables
 // --------------------------------
+
+sem_t DM;
+sem_t FA;
+sem_t SA;
 
 // ------------------------------------
 // Function prototype that initializes the
@@ -66,7 +72,7 @@ typedef struct {
 //              int number_of_lines
 //
 // Return:     	OK on success, FAIL on error
-*/
+
 
 int initializeCache( cache_line** cache, unsigned int number_of_lines );
 

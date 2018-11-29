@@ -2,37 +2,33 @@
 #include <stdlib.h> 	// std lib function
 #include <unistd.h>	// close function
 #include <pthread.h> 
+#include <semaphore.h>
+
 #include "memory.h"	// our code that represents physical memory
 #include "cache.h"	// our code that represents cache
 
 
 
+
 /**********************************************************************************************
 
-HW1: CSCI 340 Operating Systems - Fall 2018
+Project: CSCI 340 Operating Systems - Fall 2018
+The work of: Josh Glass and Eliza Starr
+Adapted code by: Dr. Munsell
 
-Develop a cache simulator that implements the two cache mapping functions (CMF):
+Develop a cache simulator that implements the three cache mapping functions (CMF):
 1) direct mapping (DM)
 2) fully associative (FA)
+3) set associative (SA)
 
 This will be an interactive simulator that allows the user to:
-1) Select the CMF
-2) Enter hex memory address locations
-3) For the CMF selected in (1) determine if it's a cache-hit or -miss (and display to the user)
-4) if a cache-miss, determine the cache line to be replaced for the choosen CMF.
-   Note: for FA CMF, the replacement algorithm is least frequently used (LFU) that is based on 
-	 minimum number of cache hits.
+1) Select one or all CMFs
+2) Watch the chosen CMF(s) read given addresses from physical memory
+3) Observe cache-hits or -misses and -replacements
 
 ***********************************************************************************************/
 
-
-#define RUNFOEVA 1
-
-
 char* CMFS[] = { "Direct Mapping", "Fully Associative", "Set Associative" };
-char* OP[] = { "MISS", "HIT" };
-char* ROP[] = { "No Replacement", "Replacement" };
-
 
 int main( int argc, char *argv[] ) {
 
@@ -60,42 +56,66 @@ int main( int argc, char *argv[] ) {
 		printf("------------------------\n");
 
 		num_blocks = numberOfBlocks( addr_bits, NUM_BLOCK_OFFSET_BITS );
-
+		printf("Success.\n");
 		printf("Physical memory addressable bits = %d, total number of blocks = %d\n", addr_bits, num_blocks );
 
 		/*
 			---------------------------------------------------
-				STEP 2:
+				STEP 1.a:
 			---------------------------------------------------
 			Initialize the block points, i.e. determine the physical
 			memory starting address for each block.
 			
 		*/
 
-		printf("\n------------------------\n");
-		printf("[STEP 2] Determining physical memory block locations\n");
-		printf("------------------------\n");
-
 		initialzeBlockPointers( num_blocks, NUM_BLOCK_OFFSET_BITS );
 
 		printf("\n------------------------\n");
-		printf("[STEP 3] Collecting addresses to be requested\n");
+		printf("[STEP 2] Collecting addresses to be read\n");
 		printf("------------------------\n");
 
 		num_addresses = readAddressesFile( "addresses.txt" );
 
 		if ( num_addresses != READ_ERROR ) {
+			printf("Success.\n");
 
 			printf("\n------------------------\n");
 			printf("[STEP 3] Starting simulation\n");
 			printf("------------------------\n");
-			printf("To exit simulation press the 'Ctrl C' keys on your keyboard\n");
+			// in future, ask user for which CMF
+
+			/* INITIALIZE SEMAPHORES */
+			printf("Initializing semaphores.\n");
+
+			sem_init(&DM, 0, 1); // first DM runs
+			sem_init(&FA, 0, 0); // then FA runs
+			sem_init(&SA, 0, 0); // lastly SA runs
 
 			/* CREATE AND RUN THREADS */
+			printf("Running simulation threads.\n");
+			
 			pthread_t dm_t, fa_t, sa_t;
-			pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL );
-			pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL );
-			pthread_create(&sa_t, NULL, (void *) sa_simulation, NULL );
+
+			if ( pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL ) != 0)
+        		perror("DM thread failed"), exit(1); 
+			
+			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL ) != 0)
+        		perror("FA thread failed"), exit(1); 
+			
+			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, NULL ) != 0)
+        		perror("SA thread failed"), exit(1); 
+
+			/* JOIN THREADS */
+			printf("Simulation is terminating.\n");
+
+			if (pthread_join(dm_t, NULL) != 0)
+        		perror("DM join failed"),exit(1);
+			
+			if (pthread_join(fa_t, NULL) != 0)
+        		perror("FA join failed"),exit(1);
+
+			if (pthread_join(sa_t, NULL) != 0)
+        		perror("SA join failed"),exit(1);
 
 		} else {
 

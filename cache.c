@@ -82,7 +82,7 @@ void dm_simulation(){
 		}
 
 		else if(dm_cache[line_num]->tag == tag_num){
-			if(CACHE_DEBUG){printf("Cache hit!\n");}
+			if(CACHE_DEBUG){ printf("Cache hit!\n"); }
 
 			found = HIT;
 			replace = NO;
@@ -95,7 +95,7 @@ void dm_simulation(){
 		}
 
 		else{
-			if(CACHE_DEBUG){printf("Cache miss!\n");}
+			if(CACHE_DEBUG){ printf("Cache miss!\n"); }
 
 			found = MISS;
 			replace = YES;
