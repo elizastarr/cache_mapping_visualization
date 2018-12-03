@@ -98,7 +98,7 @@ int main( int argc, char *argv[] ) {
 			printf("Choose replacement algorithm: 1 (LRU) or 2 (RR): ");
 			scanf( "%d", &repl_algo );
 
-			printf("repl = %d set_size = %d ", repl_algo, set_size);
+			printf("\nReplacement Algorithm = %d, Set Size = %d \n", repl_algo, set_size);
 			struct thread_args* args = malloc (sizeof (struct thread_args));
 			args->set_size = set_size;
 			args->repl_algo = repl_algo;

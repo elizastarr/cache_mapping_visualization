@@ -71,7 +71,9 @@ void dm_simulation(){
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&dm_sem);
-		fprintf(stderr, "DM: address %d\n", i);
+		fprintf(stderr, "-------------------------------------------\nADDRESS %d\n-------------------------------------------\n\n", i);
+		fprintf(stderr,"Direct Mapping:\n");
+		
 		//---------------------------------
 
 		int tag_num = (addresses[i]) >> 5;
@@ -84,7 +86,7 @@ void dm_simulation(){
 			found = MISS;
 			replace = NO;
 			dm_cache[line_num]->cache_block = cwrite(tag_num);
-			fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
+			//fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
 			cache_miss_count++;
 
 			//fetch from physical memory
@@ -119,20 +121,20 @@ void dm_simulation(){
 			//int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
         	//int start_addr = block_location[block_num];
         	dm_cache[line_num]->cache_block = cwrite(tag_num);
-			fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
+			//fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
 			//fprintf(stderr,"HEREE %s", dm_cache[line_num]->cache_block);
         	dm_cache[line_num]->tag = tag_num;
 		}
 
 		cprint(dm_cache);
-		sleep(5);
+		//sleep(3);
 		sem_post(&fa_sem);
 
 	}
 
 	sem_wait(&dm_sem);
 
-	printf("DM summary:\n");
+	printf("Direct Mapping Summary:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 
@@ -157,7 +159,7 @@ void fa_simulation(int repl_algo){
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&fa_sem);
-		fprintf(stderr, "FA: address %d\n", i);
+		fprintf(stderr, "Fully Associative:\n");
 		//---------------------------------
 
 		//Initalize address bit values
@@ -216,14 +218,14 @@ void fa_simulation(int repl_algo){
 		}
 
 		cprint(fa_cache);
-		sleep(5);
+		//sleep(3);
 		sem_post(&sa_sem);
 
 	}
 
 	sem_wait(&fa_sem);
 
-	printf("FA summary:\n");
+	printf("Fully Associative Summary:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 
@@ -248,7 +250,7 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&sa_sem);
-		fprintf(stderr, "SA: address %d\n", i);
+		fprintf(stderr, "Set Associative:\n");
 		//---------------------------------
 
 		//Initalize address bit values
@@ -353,14 +355,15 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 		/* PRINT CACHE */
 
 		cprint(sa_cache);
-		sleep(5);
+		fprintf(stderr, "\n\n");
+		sleep(3);
 		sem_post(&dm_sem);
 
 	}
 
 	sem_wait(&sa_sem);
 
-	printf("SA summary:\n");
+	printf("Set Associative Summary:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 
@@ -371,7 +374,7 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 void cprint(cache_line ** cache) {
 
 	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
-		fprintf(stderr, "%s", cache[1]->cache_block);
+		//fprintf(stderr, "%s", cache[1]->cache_block);
 		
 		for(int i = 0; i < NUM_OF_LINES; i++){
 			printf("%-10d%-15d%-10d%-10s\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block);
@@ -382,7 +385,7 @@ void cprint(cache_line ** cache) {
 
 char* cwrite(int tag_num){
 	
-	static char mem_line[50]="";
+	static char mem_line[50];
 	strcpy(mem_line, "");
 	char temp[50] = "";
 	int start_addr = block_location[tag_num];
