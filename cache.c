@@ -134,7 +134,8 @@ void dm_simulation(){
 
 	sem_wait(&dm_sem);
 
-	printf("Direct Mapping Summary:\n");
+	fprintf(stderr, "-------------------------------------------\nSUMMARY STATISTICS\n-------------------------------------------\n\n");
+	printf("Direct Mapping:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 
@@ -225,7 +226,7 @@ void fa_simulation(int repl_algo){
 
 	sem_wait(&fa_sem);
 
-	printf("Fully Associative Summary:\n");
+	printf("\nFully Associative:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 
@@ -363,7 +364,7 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 
 	sem_wait(&sa_sem);
 
-	printf("Set Associative Summary:\n");
+	printf("\nSet Associative:\n");
 	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
 	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
 

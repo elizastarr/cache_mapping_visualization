@@ -50,7 +50,7 @@ int main( int argc, char *argv[] ) {
 			user the number of physical memory addressable bits 
 			and the total number of physical memory blocks.
 		*/
-
+		printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		printf("\n------------------------\n");
 		printf("[STEP 1] Setting up physical memory\n");
 		printf("------------------------\n");
@@ -95,7 +95,7 @@ int main( int argc, char *argv[] ) {
 			unsigned int* repl_algo = 1;
 			printf("Choose set size: 2 (two-way) or 4 (four-way): ");
 			scanf( "%d", &set_size );
-			printf("Choose replacement algorithm: 1 (LRU) or 2 (RR): ");
+			printf("Choose replacement algorithm: 1 (LFU) or 2 (RR): ");
 			scanf( "%d", &repl_algo );
 
 			printf("\nReplacement Algorithm = %d, Set Size = %d \n", repl_algo, set_size);
