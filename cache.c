@@ -31,19 +31,20 @@ int initializeCaches( unsigned int number_of_lines ) {
 			dm_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			dm_cache[line]->tag = UNK;
 			dm_cache[line]->hit_count = ZERO;
-			dm_cache[line]->cache_block = unk_block;
+			dm_cache[line]->cache_block = &unk_block;
 
 			fa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			fa_cache[line]->tag = UNK;
 			fa_cache[line]->hit_count = ZERO;
-			fa_cache[line]->cache_block = unk_block;
+			fa_cache[line]->cache_block = &unk_block;
 
 			sa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			sa_cache[line]->tag = UNK;
 			sa_cache[line]->hit_count = ZERO;
-			sa_cache[line]->cache_block = unk_block;
+			sa_cache[line]->cache_block = &unk_block;
 
 		}
+
 
 	} else
 		retVal = FAIL;
@@ -195,6 +196,7 @@ void fa_simulation(int repl_algo){
 					cache_replace_count++;
 				}
 				//update cache and set hit_count to 1
+				fa_cache[min_inx]->cache_block = cwrite(tag_num);
 				fa_cache[min_inx]->tag = tag_num;
 				fa_cache[min_inx]->hit_count = 1;
 
@@ -364,10 +366,10 @@ void cprint(cache_line ** cache) {
 
 	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
 		char data[40]="";
-		printf("%d",cache[1]->cache_block[0]);
-
+		//printf("%d", cache[0]->cache_block[0]);
+		
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d%-5x%-5x%-5x%-5x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block[0],cache[i]->cache_block[1],cache[i]->cache_block[2],cache[i]->cache_block[3]);
+			printf("%-10d%-15d%-10d%-5x%-5x%-5x%-5x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block[0],cache[i]->cache_block[1],cache[i]->cache_block[2], cache[i]->cache_block[3]);
 		}
 	printf("\n");
 
