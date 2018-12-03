@@ -119,7 +119,7 @@ void dm_simulation(){
 		}
 
 		cprint(dm_cache);
-		sleep(10);
+		sleep(5);
 		sem_post(&fa_sem);
 
 	}
@@ -137,6 +137,7 @@ void dm_simulation(){
 
 // begin fa_simulation function
 void fa_simulation(int repl_algo){
+	
 
 	int found = MISS;
 	int replace = NO;
@@ -208,7 +209,7 @@ void fa_simulation(int repl_algo){
 		}
 
 		cprint(fa_cache);
-		sleep(10);
+		sleep(5);
 		sem_post(&sa_sem);
 
 	}
@@ -344,7 +345,7 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 		/* PRINT CACHE */
 
 		cprint(sa_cache);
-		sleep(10);
+		sleep(5);
 		sem_post(&dm_sem);
 
 	}
@@ -363,6 +364,7 @@ void cprint(cache_line ** cache) {
 
 	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
 		char data[40]="";
+		printf("%d",cache[1]->cache_block[0]);
 
 		for(int i = 0; i < NUM_OF_LINES; i++){
 			printf("%-10d%-15d%-10d%-5x%-5x%-5x%-5x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block[0],cache[i]->cache_block[1],cache[i]->cache_block[2],cache[i]->cache_block[3]);

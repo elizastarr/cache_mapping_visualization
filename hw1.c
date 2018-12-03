@@ -123,7 +123,7 @@ int main( int argc, char *argv[] ) {
 			if ( pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL ) != 0)
         		perror("DM thread failed"), exit(1); 
 			
-			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, &repl_algo ) != 0)
+			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, repl_algo ) != 0)
         		perror("FA thread failed"), exit(1); 
 			
 			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, args ) != 0)
