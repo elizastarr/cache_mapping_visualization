@@ -13,4 +13,5 @@ If needed, unpack the zip file.
 From a terminal window, navigate to the directory and run the following two commands.
 
 `make`
+
 `make run`
