@@ -125,7 +125,11 @@ void dm_simulation(){
 	}
 
 	sem_wait(&dm_sem);
-	printf("miss count %d", cache_miss_count);
+
+	printf("DM summary:\n");
+	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
+	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
+
 	sem_post(&fa_sem);
 
 } // end dm_simulation function
@@ -210,7 +214,11 @@ void fa_simulation(int repl_algo){
 	}
 
 	sem_wait(&fa_sem);
-	printf("miss count %d", cache_miss_count);
+	
+	printf("FA summary:\n");
+	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
+	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
+
 	sem_post(&sa_sem);
 
 } // end fa_simulation function
@@ -342,7 +350,11 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 	}
 
 	sem_wait(&sa_sem);
-	printf("miss count %d", cache_miss_count);
+	
+	printf("SA summary:\n");
+	printf("%-15s%-15s%-10s\n", "Total hits", "Total misses", "Total replacements");
+	printf("%-15d%-15d%-10d\n", cache_hit_count, cache_miss_count, cache_replace_count);
+
 	sem_post(&dm_sem);
 
 } // end sa_simulation function
