@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <string.h>
+
 int initializeCaches( unsigned int number_of_lines ) {
 
 	int line, retVal;
@@ -31,18 +33,18 @@ int initializeCaches( unsigned int number_of_lines ) {
 			dm_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			dm_cache[line]->tag = UNK;
 			dm_cache[line]->hit_count = ZERO;
-			dm_cache[line]->cache_block = &unk_block;
+			dm_cache[line]->cache_block = " ";
 
 			fa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			fa_cache[line]->tag = UNK;
 			fa_cache[line]->hit_count = ZERO;
-			fa_cache[line]->cache_block = &unk_block;
-
+			fa_cache[line]->cache_block = " ";
+			
 			sa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			sa_cache[line]->tag = UNK;
 			sa_cache[line]->hit_count = ZERO;
-			sa_cache[line]->cache_block = &unk_block;
-
+			sa_cache[line]->cache_block = " ";
+			
 		}
 
 
@@ -82,6 +84,7 @@ void dm_simulation(){
 			found = MISS;
 			replace = NO;
 			dm_cache[line_num]->cache_block = cwrite(tag_num);
+			fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
 			cache_miss_count++;
 
 			//fetch from physical memory
@@ -101,7 +104,7 @@ void dm_simulation(){
 			cache_hit_count++;
 
 			//get the value from the cache
-        	printf("%X\n", dm_cache[line_num]->cache_block[offset_num]);
+        	//printf("%X\n", dm_cache[line_num]->cache_block[offset_num]);
         	//printf("%X\n", phy_memory[start_addr + offset_num]);
 		}
 
@@ -116,6 +119,8 @@ void dm_simulation(){
 			//int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
         	//int start_addr = block_location[block_num];
         	dm_cache[line_num]->cache_block = cwrite(tag_num);
+			fprintf("value of cache_block %s", dm_cache[line_num]->cache_block);
+			//fprintf(stderr,"HEREE %s", dm_cache[line_num]->cache_block);
         	dm_cache[line_num]->tag = tag_num;
 		}
 
@@ -365,21 +370,30 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 void cprint(cache_line ** cache) {
 
 	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
-		char data[40]="";
-		//printf("%d", cache[0]->cache_block[0]);
+		fprintf(stderr, "%s", cache[1]->cache_block);
 		
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d%-5x%-5x%-5x%-5x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block[0],cache[i]->cache_block[1],cache[i]->cache_block[2], cache[i]->cache_block[3]);
+			printf("%-10d%-15d%-10d%-10s\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block);
 		}
 	printf("\n");
 
 } // end cprint function
 
-int* cwrite(int tag_num){
-	static int mem_line[4];
+char* cwrite(int tag_num){
+	
+	static char mem_line[50]="";
+	strcpy(mem_line, "");
+	char temp[50] = "";
 	int start_addr = block_location[tag_num];
+
 	for(int word = 0; word < 4; word++){
-		mem_line[word] = phy_memory[start_addr + word];
+		
+		sprintf(temp, "%x", phy_memory[start_addr + word]);
+		strcat(mem_line, temp);
+		strcat(mem_line, " ");
+
 	}
-	return &mem_line;
+	//fprintf(stderr, "mem %s", mem_line);
+
+	return mem_line;
 }

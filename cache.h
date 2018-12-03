@@ -55,7 +55,7 @@ typedef struct {
 
 	int tag;
 	int hit_count;
-    int* cache_block;
+    char* cache_block;
 
 } cache_line;
 
@@ -145,4 +145,4 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo);
 void cprint(cache_line** cache);
 
 
-int* cwrite(int tag_num);
+char* cwrite(int tag_num);
