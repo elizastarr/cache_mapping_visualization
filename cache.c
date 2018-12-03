@@ -31,17 +31,17 @@ int initializeCaches( unsigned int number_of_lines ) {
 			dm_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			dm_cache[line]->tag = UNK;
 			dm_cache[line]->hit_count = ZERO;
-			dm_cache[line]->cache_block = &unk_block;
+			dm_cache[line]->cache_block = unk_block;
 
 			fa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			fa_cache[line]->tag = UNK;
 			fa_cache[line]->hit_count = ZERO;
-			fa_cache[line]->cache_block = &unk_block;
+			fa_cache[line]->cache_block = unk_block;
 
 			sa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			sa_cache[line]->tag = UNK;
 			sa_cache[line]->hit_count = ZERO;
-			sa_cache[line]->cache_block = &unk_block;
+			sa_cache[line]->cache_block = unk_block;
 
 		}
 
@@ -123,6 +123,11 @@ void dm_simulation(){
 		sem_post(&fa_sem);
 
 	}
+
+	sem_wait(&dm_sem);
+	printf("miss count %d", cache_miss_count);
+	sem_post(&fa_sem);
+
 } // end dm_simulation function
 
 
@@ -203,6 +208,11 @@ void fa_simulation(int repl_algo){
 		sem_post(&sa_sem);
 
 	}
+
+	sem_wait(&fa_sem);
+	printf("miss count %d", cache_miss_count);
+	sem_post(&sa_sem);
+
 } // end fa_simulation function
 
 
@@ -330,19 +340,19 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 		sem_post(&dm_sem);
 
 	}
+
+	sem_wait(&sa_sem);
+	printf("miss count %d", cache_miss_count);
+	sem_post(&dm_sem);
+
 } // end sa_simulation function
 
 void cprint(cache_line ** cache) {
 
 	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
 		char data[40]="";
-		
+
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			/*
-			for(int j=0; i < 4; j++){
-				printf("data=%x", cache[i]->cache_block[j]);
-				strcat(data, cache[i]->cache_block[j]);
-			}*/
 			printf("%-10d%-15d%-10d%-5x%-5x%-5x%-5x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block[0],cache[i]->cache_block[1],cache[i]->cache_block[2],cache[i]->cache_block[3]);
 		}
 	printf("\n");
@@ -350,7 +360,7 @@ void cprint(cache_line ** cache) {
 } // end cprint function
 
 int* cwrite(int tag_num){
-	static int mem_line[4] = {UNK, UNK, UNK, UNK};
+	static int mem_line[4];
 	int start_addr = block_location[tag_num];
 	for(int word = 0; word < 4; word++){
 		mem_line[word] = phy_memory[start_addr + word];
