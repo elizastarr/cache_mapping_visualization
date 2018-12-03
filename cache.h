@@ -26,8 +26,8 @@
 
 #define NUM_OF_INDEX_BITS_2WAY_SA 2
 #define NUM_OF_TAG_BITS_2WAY_SA 4
-#define TWO_WAY 4
-#define FOUR_WAY 2
+#define TWO_WAY 2
+#define FOUR_WAY 4
 
 #define NUM_OF_INDEX_BITS_4WAY_SA 1
 #define NUM_OF_TAG_BITS_4WAY_SA 5
@@ -58,6 +58,11 @@ typedef struct {
     int* cache_block;
 
 } cache_line;
+
+struct thread_args {
+       unsigned int* set_size;
+	   unsigned int* repl_algo;
+};
 
 // --------------------------------
 // GLOBAL Variables
@@ -123,7 +128,7 @@ void fa_simulation(int repl_algo);
 // Return: OK if successful, FAIL on error
 */
 
-void sa_simulation(unsigned int* set_size, int repl_algo);
+void sa_simulation(unsigned int* set_size, unsigned int* repl_algo);
 
 
 // ------------------------------------

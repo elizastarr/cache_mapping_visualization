@@ -64,17 +64,11 @@ void dm_simulation(){
 	int cache_miss_count = 0;
 	int cache_replace_count = 0;
 
-	/*
-	// Initalize the cache
-	cache_line** dm_cache;
-	initializeCache(dm_cache, NUM_OF_LINES);
-	*/
-
 	// Begin the dm_simulation
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&dm_sem);
-		fprintf(stderr, " DM: %d\n", i);
+		fprintf(stderr, "DM: address %d\n", i);
 		//---------------------------------
 
 		int tag_num = (addresses[i]) >> 5;
@@ -124,11 +118,7 @@ void dm_simulation(){
         	dm_cache[line_num]->tag = tag_num;
 		}
 
-		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
-		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, dm_cache[i]->hit_count, dm_cache[i]->tag);
-		}
+		cprint(dm_cache);
 
 		sem_post(&fa_sem);
 
@@ -147,17 +137,11 @@ void fa_simulation(int repl_algo){
 	int cache_miss_count = 0;
 	int cache_replace_count = 0;
 
-	/*
-	// Initalize the cache
-	cache_line** fa_cache;
-	initializeCache(fa_cache, NUM_OF_LINES);
-	*/
-
 	// Begin fa_simulation
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&fa_sem);
-		fprintf(stderr, " FA: %d\n", i);
+		fprintf(stderr, "FA: address %d\n", i);
 		//---------------------------------
 
 		//Initalize address bit values
@@ -171,9 +155,6 @@ void fa_simulation(int repl_algo){
 				found = HIT;
 				replace = NO;
 				cache_hit_count++;
-
-				//get value cache
-				//printf(fa_cache[line]->cache_block[offset_num]);
 
 				//update cache hit_count
 				fa_cache[line]->hit_count += 1;
@@ -217,11 +198,7 @@ void fa_simulation(int repl_algo){
 			}
 		}
 
-		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
-		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, fa_cache[i]->hit_count, fa_cache[i]->tag);
-		}
+		cprint(fa_cache);
 
 		sem_post(&sa_sem);
 
@@ -230,30 +207,22 @@ void fa_simulation(int repl_algo){
 
 
 // begin sa_simulation function
-void sa_simulation(unsigned int* set_size, int repl_algo){
+void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 
 	int found = MISS;
 	int replace = NO;
 	int num_sets = NUM_OF_LINES / *set_size;
-
-	//TODO: We should add a check that the set_size is an acceptable divisor of NUM_OF_LINES
 
 	// Initalize cache-monitoring variables
 	int cache_hit_count = 0;
 	int cache_miss_count = 0;
 	int cache_replace_count = 0;
 
-	/*
-	// Initalize the cache
-	cache_line** sa_cache;
-	initializeCache(sa_cache, NUM_OF_LINES);
-	*/
-
 	// Begin the simulation
 	for(int i = 0; i < num_addresses; i++){
 
 		sem_wait(&sa_sem);
-		fprintf(stderr, " SA: %d\n", i);
+		fprintf(stderr, "SA: address %d\n", i);
 		//---------------------------------
 
 		//Initalize address bit values
@@ -355,10 +324,8 @@ void sa_simulation(unsigned int* set_size, int repl_algo){
 		}
 
 		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
-		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, sa_cache[i]->hit_count, sa_cache[i]->tag);
-		}
+		
+		cprint(sa_cache);
 
 		sem_post(&dm_sem);
 
@@ -367,25 +334,11 @@ void sa_simulation(unsigned int* set_size, int repl_algo){
 
 void cprint(cache_line ** cache) {
 
-	unsigned int line;
-
-	printf("\n---------------------------------------------\n");
-	printf("line\ttag\tnum of hits\n");
-	printf("---------------------------------------------\n");
-
-	for ( line=0; line<NUM_OF_LINES; line++ ) {
-
-		if ( cache[line]->tag == UNK ) {
-
-			printf("%d\t%d\t%d\n", line, cache[line]->tag, cache[line]->hit_count );
-
-		} else {
-
-			printf("%d\t%02X\t%d\n", line, cache[line]->tag, cache[line]->hit_count );
-
+	printf("%-10s%-15s%-10s%-10s\n", "Index", "hit_count", "tag", "data");
+		for(int i = 0; i < NUM_OF_LINES; i++){
+			printf("%-10d%-15d%-10d%-10x\n", i, cache[i]->hit_count, cache[i]->tag, cache[i]->cache_block);
 		}
-
-	}
+	printf("\n");
 
 } // end cprint function
 

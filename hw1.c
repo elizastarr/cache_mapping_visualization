@@ -87,9 +87,26 @@ int main( int argc, char *argv[] ) {
 			}
 
 			printf("\n------------------------\n");
-			printf("[STEP 3] Starting simulation\n");
+			printf("[STEP 3] User preferences\n");
 			printf("------------------------\n");
-			// in future, ask user for which CMF
+			
+			
+			unsigned int* set_size = 2;
+			unsigned int* repl_algo = 1;
+			printf("Choose set size: 2 (two-way) or 4 (four-way): ");
+			scanf( "%d", &set_size );
+			printf("Choose replacement algorithm: 1 (LRU) or 2 (RR): ");
+			scanf( "%d", &repl_algo );
+
+			printf("repl = %d set_size = %d ", repl_algo, set_size);
+			struct thread_args* args = malloc (sizeof (struct thread_args));
+			args->set_size = set_size;
+			args->repl_algo = repl_algo;
+
+
+			printf("\n------------------------\n");
+			printf("[STEP 4] Starting simulation\n");
+			printf("------------------------\n");
 
 			/* INITIALIZE SEMAPHORES */
 			printf("Initializing semaphores.\n");
@@ -106,10 +123,10 @@ int main( int argc, char *argv[] ) {
 			if ( pthread_create(&dm_t, NULL, (void *) dm_simulation, NULL ) != 0)
         		perror("DM thread failed"), exit(1); 
 			
-			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, NULL ) != 0)
+			if ( pthread_create(&fa_t, NULL, (void *) fa_simulation, &repl_algo ) != 0)
         		perror("FA thread failed"), exit(1); 
 			
-			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, TWO_WAY ) != 0)
+			if ( pthread_create(&sa_t, NULL, (void *) sa_simulation, args ) != 0)
         		perror("SA thread failed"), exit(1); 
 			
 
