@@ -3,6 +3,8 @@ Simulate direct-mapped,set associative, and fully associative cache systems in C
 
 This is an assignment for an Operating Systems course offered at the College of Charleston in Charleston, SC by Prof. Munsell.
 
+The entirety of the code contained in this project is either refactored from the original homework assignment, or written independently using only the C standard libraries.
+
 # Running the Simulation
 Running this simulation is simple via the included Makefile.
 
