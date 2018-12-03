@@ -34,6 +34,10 @@
 
 #define NUM_OF_TAG_BITS_FA 6
 #define NUM_OF_LINES 8
+#define LRU 1
+#define RR 2
+
+
 
 #define HIT 1
 #define MISS 0
@@ -51,6 +55,7 @@ typedef struct {
 
 	int tag;
 	int hit_count;
+    int* cache_block;
 
 } cache_line;
 
@@ -78,7 +83,7 @@ cache_line** sa_cache;
 // Return:     	OK on success, FAIL on error
 
 
-int initializeCache( cache_line** cache, unsigned int number_of_lines );
+int initializeCache( cache_line** cache, unsigned int number_of_lines, int repl_algo );
 
 
 /* ------------------------------------
@@ -104,7 +109,7 @@ void dm_simulation();
 //
 // Return: OK if successful, FAIL on error
 
-void fa_simulation();
+void fa_simulation(int repl_algo);
 
 
 /* ------------------------------------
@@ -118,7 +123,7 @@ void fa_simulation();
 // Return: OK if successful, FAIL on error
 */
 
-void sa_simulation(unsigned int* set_size);
+void sa_simulation(unsigned int* set_size, int repl_algo);
 
 
 // ------------------------------------
@@ -134,3 +139,5 @@ void sa_simulation(unsigned int* set_size);
 
 void cprint(cache_line** cache);
 
+
+int* cwrite(int tag_num);

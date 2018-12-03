@@ -17,12 +17,13 @@ int initializeCaches( unsigned int number_of_lines ) {
 
 	int line, retVal;
 	retVal = OK;
+	int unk_block[4] = {UNK, UNK, UNK, UNK};
 
 	dm_cache = malloc( sizeof( cache_line ) * number_of_lines );
 	fa_cache = malloc( sizeof( cache_line ) * number_of_lines );
 	sa_cache = malloc( sizeof( cache_line ) * number_of_lines );
 
-	if ( dm_cache != NULL ) {
+	if ( dm_cache != UNK ) {
 
 		// loops through lines of cache from 0-7
 		for ( line=0; line<number_of_lines; line++ ) {
@@ -30,14 +31,17 @@ int initializeCaches( unsigned int number_of_lines ) {
 			dm_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			dm_cache[line]->tag = UNK;
 			dm_cache[line]->hit_count = ZERO;
+			dm_cache[line]->cache_block = &unk_block;
 
 			fa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			fa_cache[line]->tag = UNK;
 			fa_cache[line]->hit_count = ZERO;
+			fa_cache[line]->cache_block = &unk_block;
 
 			sa_cache[line] = (cache_line*) malloc( sizeof( cache_line ) );
 			sa_cache[line]->tag = UNK;
 			sa_cache[line]->hit_count = ZERO;
+			sa_cache[line]->cache_block = &unk_block;
 
 		}
 
@@ -72,7 +76,7 @@ void dm_simulation(){
 		sem_wait(&dm_sem);
 		fprintf(stderr, " DM: %d\n", i);
 		//---------------------------------
-		
+
 		int tag_num = (addresses[i]) >> 5;
     	int line_num = ( (addresses[i]) & 28 ) >> 2;
     	int offset_num = (addresses[i]) & 3;
@@ -82,11 +86,13 @@ void dm_simulation(){
 
 			found = MISS;
 			replace = NO;
+			dm_cache[line_num]->cache_block = cwrite(tag_num);
+			cache_miss_count++;
 
 			//fetch from physical memory
-			int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
-			int start_addr = block_location[block_num];
-			printf("%X\n", phy_memory[start_addr + offset_num]);
+			//int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
+			//int start_addr = block_location[block_num];
+			//printf("%X\n", phy_memory[start_addr + offset_num]);
 
 			//update the cache
 			dm_cache[line_num]->tag = tag_num;
@@ -100,9 +106,8 @@ void dm_simulation(){
 			cache_hit_count++;
 
 			//get the value from the cache
-			int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
-        	int start_addr = block_location[block_num];
-        	printf("%X\n", phy_memory[start_addr + offset_num]);
+        	printf("%X\n", dm_cache[line_num]->cache_block[offset_num]);
+        	//printf("%X\n", phy_memory[start_addr + offset_num]);
 		}
 
 		else{
@@ -113,17 +118,16 @@ void dm_simulation(){
 			cache_miss_count++;
 			cache_replace_count++;
 
-			int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
-        	int start_addr = block_location[block_num];
-        	printf("%X\n", phy_memory[start_addr + offset_num]);
-
+			//int block_num = (((1 << 6) - 1) & (addresses[i] >> (3 - 1)));
+        	//int start_addr = block_location[block_num];
+        	dm_cache[line_num]->cache_block = cwrite(tag_num);
         	dm_cache[line_num]->tag = tag_num;
 		}
 
 		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag"); 
+		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, dm_cache[i]->hit_count, dm_cache[i]->tag); 
+			printf("%-10d%-15d%-10d\n", i, dm_cache[i]->hit_count, dm_cache[i]->tag);
 		}
 
 		sem_post(&fa_sem);
@@ -133,7 +137,7 @@ void dm_simulation(){
 
 
 // begin fa_simulation function
-void fa_simulation(){
+void fa_simulation(int repl_algo){
 
 	int found = MISS;
 	int replace = NO;
@@ -144,7 +148,7 @@ void fa_simulation(){
 	int cache_replace_count = 0;
 
 	/*
-	// Initalize the cache 
+	// Initalize the cache
 	cache_line** fa_cache;
 	initializeCache(fa_cache, NUM_OF_LINES);
 	*/
@@ -168,9 +172,8 @@ void fa_simulation(){
 				replace = NO;
 				cache_hit_count++;
 
-				//get value from memory
-				int start_addr = block_location[tag_num];
-				printf("%X\n", phy_memory[start_addr + offset_num]);
+				//get value cache
+				//printf(fa_cache[line]->cache_block[offset_num]);
 
 				//update cache hit_count
 				fa_cache[line]->hit_count += 1;
@@ -183,37 +186,41 @@ void fa_simulation(){
 			cache_miss_count++;
 
 			//replace based on LRU
-			int min = fa_cache[0]->hit_count;
-			int min_inx = 0;
-			for(int i = 0; i < NUM_OF_LINES; i++){
-				if(fa_cache[i]->hit_count < min){
-					min = fa_cache[i]->hit_count;
-					min_inx = i;
+			if(repl_algo == LRU){
+				int min = fa_cache[0]->hit_count;
+				int min_inx = 0;
+				for(int i = 0; i < NUM_OF_LINES; i++){
+					if(fa_cache[i]->hit_count < min){
+						min = fa_cache[i]->hit_count;
+						min_inx = i;
+					}
 				}
-			}
 
-			if(min == 0) {
-				printf("Empty line found\n"); 
-				replace = NO;
-			} else {
-				replace = YES; 
+				if(min == 0) {
+					printf("Empty line found\n");
+					replace = NO;
+				} else {
+					replace = YES;
+					cache_replace_count++;
+				}
+				//update cache and set hit_count to 1
+				fa_cache[min_inx]->tag = tag_num;
+				fa_cache[min_inx]->hit_count = 1;
+
+			}
+			else if(repl_algo == RR){
+				int rand_line = rand() % 8;
+				fa_cache[rand_line]->cache_block = cwrite(tag_num);
+				fa_cache[rand_line]->hit_count = 1;
+				fa_cache[rand_line]->tag = tag_num;
 				cache_replace_count++;
 			}
-
-			//fetch the value from memory
-			int start_addr = block_location[tag_num];
-			printf("%X\n", phy_memory[start_addr + offset_num]);
-
-			//update cache and set hit_count to 1
-			fa_cache[min_inx]->tag = tag_num;
-			fa_cache[min_inx]->hit_count = 1;
-
 		}
 
 		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag"); 
+		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, fa_cache[i]->hit_count, fa_cache[i]->tag); 
+			printf("%-10d%-15d%-10d\n", i, fa_cache[i]->hit_count, fa_cache[i]->tag);
 		}
 
 		sem_post(&sa_sem);
@@ -223,7 +230,7 @@ void fa_simulation(){
 
 
 // begin sa_simulation function
-void sa_simulation(unsigned int* set_size){
+void sa_simulation(unsigned int* set_size, int repl_algo){
 
 	int found = MISS;
 	int replace = NO;
@@ -278,8 +285,10 @@ void sa_simulation(unsigned int* set_size){
 						replace = NO;
 						cache_hit_count++;
 
-						int start_addr = block_location[tag_num];
-						printf("%X\n", phy_memory[start_addr + offset_num]);
+						//int start_addr = block_location[tag_num];
+						//printf("%X\n", phy_memory[start_addr + offset_num]);
+						// access the value via
+						// sa_cache[sa_line]->cache_block[offset_num];
 
 						sa_cache[sa_line]->hit_count += 1;
 						break;
@@ -292,10 +301,11 @@ void sa_simulation(unsigned int* set_size){
 							replace = NO;
 
 							int start_addr = block_location[tag_num];
-							printf("%X\n", phy_memory[start_addr + offset_num]);
+							//printf("%X\n", phy_memory[start_addr + offset_num]);
 
 							sa_cache[sa_line]->tag = tag_num;
 							sa_cache[sa_line]->hit_count = 1;
+							sa_cache[sa_line]->cache_block = cwrite(tag_num);
 							break;
 						}
 					}
@@ -308,42 +318,48 @@ void sa_simulation(unsigned int* set_size){
 					found = MISS;
 					cache_miss_count++;
 
-					int min_inx = 0;
-					int min = sa_cache[(*set_size) * set]->hit_count;
-					for (int i = 0; i < *set_size; i++){
-						int sa_cache_line = ((*set_size) * set) + i;
-						if (sa_cache[sa_cache_line]->hit_count < min){
-							min = sa_cache[sa_cache_line]->hit_count;
-							min_inx = i;
+					if(repl_algo == LRU){
+
+						int min_inx = 0;
+						int min = sa_cache[(*set_size) * set]->hit_count;
+						for (int i = 0; i < *set_size; i++){
+							int sa_cache_line = ((*set_size) * set) + i;
+							if (sa_cache[sa_cache_line]->hit_count < min){
+								min = sa_cache[sa_cache_line]->hit_count;
+								min_inx = i;
+							}
 						}
+
+						if ( min == 0 ) {
+							printf("Empty line found!\n");
+							replace = NO;
+						} else {
+							replace = YES;
+							cache_replace_count++;
+						}
+
+						//update the cache and set hit count to 1
+						sa_cache[(*set_size) * set + min_inx]->tag = tag_num;
+						sa_cache[(*set_size) * set + min_inx]->hit_count = 1;
+						sa_cache[(*set_size) * set + min_inx]->cache_block = cwrite(tag_num);
 					}
-
-					if ( min == 0 ) { 
-						printf("Empty line found!\n"); 
-						replace = NO; 
-					} else {
-						replace = YES; 
-						cache_replace_count++;
+					else if(repl_algo == RR){
+						int rand_line = rand() % 2;
+						sa_cache[set + rand_line]->cache_block = cwrite(tag_num);
+						sa_cache[set + rand_line]->tag = tag_num;
+						sa_cache[set + rand_line]->hit_count = 1;
 					}
-
-					//fetch the value from memory
-					int start_addr = block_location[tag_num];
-					printf("%X\n", phy_memory[start_addr + offset_num]);
-
-					//update the cache and set hit count to 1
-					sa_cache[(*set_size) * set + min_inx]->tag = tag_num;
-					sa_cache[(*set_size) * set + min_inx]->hit_count = 1;
 
 				}
 			}
 		}
 
 		/* PRINT CACHE */
-		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag"); 
+		printf("%-10s%-15s%-10s\n", "Index", "hit_count", "tag");
 		for(int i = 0; i < NUM_OF_LINES; i++){
-			printf("%-10d%-15d%-10d\n", i, sa_cache[i]->hit_count, sa_cache[i]->tag); 
+			printf("%-10d%-15d%-10d\n", i, sa_cache[i]->hit_count, sa_cache[i]->tag);
 		}
-		
+
 		sem_post(&dm_sem);
 
 	}
@@ -372,3 +388,12 @@ void cprint(cache_line ** cache) {
 	}
 
 } // end cprint function
+
+int* cwrite(int tag_num){
+	static int mem_line[4] = {UNK, UNK, UNK, UNK};
+	int start_addr = block_location[tag_num];
+	for(int word = 0; word < 4; word++){
+		mem_line[word] = phy_memory[start_addr + word];
+	}
+	return &mem_line;
+}
