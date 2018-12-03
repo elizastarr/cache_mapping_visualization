@@ -259,13 +259,13 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 		int offset_num = UNK;
 
 		if(*set_size == TWO_WAY){
-			index_num = ((addresses[i]) & 12) >> 2;
 			tag_num = (addresses[i]) >> 4;
+			index_num = ((addresses[i]) & 12) >> 2;
 			offset_num = (addresses[i]) & 3;
 		}
 		else if(*set_size == FOUR_WAY){
-			index_num = ((addresses[i]) & 4) >> 2;
 			tag_num = (addresses[i]) >> 3;
+			index_num = ((addresses[i]) & 4) >> 2;
 			offset_num = (addresses[i]) & 3;
 		}
 
@@ -297,12 +297,12 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 							found = MISS;
 							replace = NO;
 
-							int start_addr = block_location[tag_num];
+							//int start_addr = block_location[tag_num];
 							//printf("%X\n", phy_memory[start_addr + offset_num]);
 
 							sa_cache[sa_line]->tag = tag_num;
 							sa_cache[sa_line]->hit_count = 1;
-							sa_cache[sa_line]->cache_block = cwrite(tag_num);
+							sa_cache[sa_line]->cache_block = cwrite((addresses[i]) >> 5);
 							break;
 						}
 						else{replace = YES; }
@@ -339,11 +339,11 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 						//update the cache and set hit count to 1
 						sa_cache[(*set_size) * set + min_inx]->tag = tag_num;
 						sa_cache[(*set_size) * set + min_inx]->hit_count = 1;
-						sa_cache[(*set_size) * set + min_inx]->cache_block = cwrite(tag_num);
+						sa_cache[(*set_size) * set + min_inx]->cache_block = cwrite((addresses[i]) >> 5);
 					}
 					else if(repl_algo == RR){
 						int rand_line = rand() % 2;
-						sa_cache[set + rand_line]->cache_block = cwrite(tag_num);
+						sa_cache[set + rand_line]->cache_block = cwrite((addresses[i]) >> 5);
 						sa_cache[set + rand_line]->tag = tag_num;
 						sa_cache[set + rand_line]->hit_count = 1;
 					}
