@@ -143,7 +143,7 @@ void dm_simulation(){
 
 // begin fa_simulation function
 void fa_simulation(int repl_algo){
-	
+
 
 	int found = MISS;
 	int replace = NO;
@@ -292,7 +292,7 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 						if (sa_cache[sa_line]->tag == UNK){
 							if (CACHE_DEBUG){printf("Empty line!\n");}
 							cache_miss_count++;
-							found = NO;
+							found = MISS;
 							replace = NO;
 
 							int start_addr = block_location[tag_num];
@@ -303,11 +303,12 @@ void sa_simulation(unsigned int* set_size, unsigned int* repl_algo){
 							sa_cache[sa_line]->cache_block = cwrite(tag_num);
 							break;
 						}
+						else{replace = YES; }
 					}
 				}
 
 				//replace a line in the set using LRU
-				if (found == MISS){
+				if (found == MISS && replace == YES){
 
 					if ( CACHE_DEBUG ) { printf("Cache miss!\n"); }
 					found = MISS;
